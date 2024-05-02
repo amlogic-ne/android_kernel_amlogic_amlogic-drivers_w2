@@ -1,4 +1,4 @@
-AML_VERS_NUM=v1.7.5.1_2024-04.19-w2 driver:8914a738aae92b9d2124f96c26709b6b342e65e0
+AML_VERS_NUM=v1.7.5.2.1_2024-05.02-w2 driver:8914a738aae92b9d2124f96c26709b6b342e65e0
 #KERNELDIR=/usr/lib/modules/5.8.0-63-generic/build
 PWD=$(shell pwd)
 ifeq ($(ARCH),)
@@ -116,7 +116,7 @@ endif
 # } // NEED 4.9 PATCH
 #
 
-CONFIG_SDIO_TX_ENH ?= y
+CONFIG_SDIO_TX_ENH ?= n
 
 subdir-ccflags-$(CONFIG_DEBUG_FS) += -DCONFIG_AML_DEBUGFS
 subdir-ccflags-$(CONFIG_DEBUG_FS) += -DCONFIG_AML_UM_HELPER_DFLT=\"$(CONFIG_AML_UM_HELPER_DFLT)\"

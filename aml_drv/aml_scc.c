@@ -709,6 +709,12 @@ void aml_scc_check_chan_conflict(struct aml_hw *aml_hw)
                     AML_INFO("init band conflict with target band [%d %d]\n", aml_scc_get_init_band(), target_chdef.chan->band);
                     break;
                 }
+
+                if (target_chdef.chan->flags & IEEE80211_CHAN_RADAR) {
+                    AML_INFO("target is radar chan");
+                    break;
+                }
+
                 AML_INFO("chan %d,bw:%s --> chan %d,bw:%s ",
                     aml_ieee80211_freq_to_chan(cur_chdef.chan->center_freq, cur_chdef.chan->band),
                     chan_width_trace[cur_chdef.width],

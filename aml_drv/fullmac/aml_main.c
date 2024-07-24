@@ -2198,6 +2198,10 @@ static int aml_cfg80211_disconnect(struct wiphy *wiphy, struct net_device *dev,
         AML_INFO("error,sta.ap is null");
     }
 
+    if ((aml_recy != NULL) && (aml_vif->vif_index == aml_recy->assoc_info.vif_idx)) {
+        aml_recy_flags_clr(AML_RECY_ASSOC_INFO_SAVED);
+    }
+
     if (aml_vif->sta.ap && aml_vif->sta.ap->valid) {
         cnt = 0;
         aml_connect_flags_clr(aml_vif, AML_GETTING_IP);
@@ -5966,9 +5970,7 @@ static void aml_reg_notifier(struct wiphy *wiphy,
     AML_INFO("initiator=%d, hint_type=%d, alpha=%s, region=%d\n",
             request->initiator, request->user_reg_hint_type,
             request->alpha2, request->dfs_region);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
-    aml_apply_regdom(aml_hw, wiphy, request->alpha2);
-#endif
+
     // For now trust all initiator
     aml_radar_set_domain(&aml_hw->radar, request->dfs_region);
     aml_send_me_chan_config_req(aml_hw);

@@ -1599,28 +1599,13 @@ int aml_sdio_create_thread(struct aml_hw *aml_hw)
 
     sema_init(&aml_hw->aml_rx_sem, 0);
     aml_hw->aml_rx_task_quit = 0;
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-        aml_hw->aml_rx_task = kthread_run(aml_rx_task, aml_hw, "aml_rx_task");
-        if (IS_ERR(aml_hw->aml_rx_task)) {
-            kthread_stop(aml_hw->aml_irq_task);
-            aml_hw->aml_rx_task = NULL;
-            ERROR_DEBUG_OUT("create aml_rx_task error!!!!\n");
-            return -1;
-        }
-#else // template solution for S905L3A
-        {
-            aml_hw->aml_rx_task = kthread_create(aml_rx_task, aml_hw, "aml_rx_task", num_online_cpus() - 1);
-            if (IS_ERR(aml_hw->aml_rx_task)) {
-                kthread_stop(aml_hw->aml_irq_task);
-                aml_hw->aml_rx_task = NULL;
-                ERROR_DEBUG_OUT("create aml_rx_task error!!!!\n");
-                return -1;
-            }
-            kthread_bind(aml_hw->aml_rx_task, num_online_cpus() - 1);
-            wake_up_process(aml_hw->aml_rx_task);
-        }
-#endif
+    aml_hw->aml_rx_task = kthread_run(aml_rx_task, aml_hw, "aml_rx_task");
+    if (IS_ERR(aml_hw->aml_rx_task)) {
+        kthread_stop(aml_hw->aml_irq_task);
+        aml_hw->aml_rx_task = NULL;
+        ERROR_DEBUG_OUT("create aml_rx_task error!!!!\n");
+        return -1;
+    }
 
     sema_init(&aml_hw->aml_tx_sem, 0);
     aml_hw->aml_tx_task_quit = 0;
@@ -2388,7 +2373,7 @@ static u32 aml_pci_ack_irq(struct aml_hw *aml_hw)
 
     if (aml_bus_type != PCIE_MODE) {
         buf_state = reg_val[0] & FW_BUFFER_STATUS;
-        if (buf_state) {
+        if (buf_state && ((aml_hw->rx_buf_state & FW_BUFFER_STATUS) != (buf_state & FW_BUFFER_STATUS))) {
             aml_hw->rx_buf_state &= ~FW_BUFFER_STATUS;
             if (buf_state & FW_BUFFER_NARROW) {
                 aml_hw->rx_buf_state |= buf_state | BUFFER_NARROW;

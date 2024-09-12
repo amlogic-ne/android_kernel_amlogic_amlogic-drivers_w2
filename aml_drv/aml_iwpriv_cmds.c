@@ -17,7 +17,7 @@
 #endif
 #include "sdio_common.h"
 #include "aml_fw_trace.h"
-#include "aml_mdns_offload.h"
+
 
 #define RC_AUTO_RATE_INDEX -1
 #define MAX_CHAR_SIZE 40
@@ -764,26 +764,19 @@ int aml_print_last_rx_info(struct aml_hw *priv, struct aml_sta *sta)
     char hist[] = "##################################################";
     int hist_len = sizeof(hist) - 1;
     u8 nrx;
-    bool bprintk = 1;
     rate_stats = &sta->stats.rx_rate;
     bufsz = (rate_stats->rate_cnt * ( 50 + hist_len) + 200);
-    if (bprintk == 0) {
-        buf = kmalloc(bufsz + 1, GFP_ATOMIC);
-        if (buf == NULL)
-            return 0;
-    }
+    buf = kmalloc(bufsz + 1, GFP_ATOMIC);
+    if (buf == NULL)
+        return 0;
+
     // Get number of RX paths
     nrx = (priv->version_cfm.version_phy_1 & MDM_NRX_MASK) >> MDM_NRX_LSB;
-    if (bprintk) {
-        printk("\nRX rate info for %02X:%02X:%02X:%02X:%02X:%02X:\n", sta->mac_addr[0], sta->mac_addr[1], sta->mac_addr[2],
-                sta->mac_addr[3], sta->mac_addr[4], sta->mac_addr[5]);
-    }
-    else {
-        len += scnprintf(buf, bufsz,
-                            "\nRX rate info for %02X:%02X:%02X:%02X:%02X:%02X:\n",
-                            sta->mac_addr[0], sta->mac_addr[1], sta->mac_addr[2],
-                            sta->mac_addr[3], sta->mac_addr[4], sta->mac_addr[5]);
-    }
+
+    len += scnprintf(buf, bufsz,
+                        "\nRX rate info for %02X:%02X:%02X:%02X:%02X:%02X:\n",
+                        sta->mac_addr[0], sta->mac_addr[1], sta->mac_addr[2],
+                        sta->mac_addr[3], sta->mac_addr[4], sta->mac_addr[5]);
 
     // Display Statistics
     for (i = 0; i < rate_stats->size; i++) {
@@ -796,31 +789,19 @@ int aml_print_last_rx_info(struct aml_hw *priv, struct aml_sta *sta)
 
             idx_to_rate_cfg(i, &rate_config, &ru_size);
             len += print_rate_from_cfg(&buf[len], bufsz - len,
-                                       rate_config.value, NULL, ru_size, bprintk);
+                                       rate_config.value, NULL, ru_size);
             p = div_u64((percent * hist_len), 1000);
-            //len += scnprintf(&buf[len], bufsz - len, ": %9d(%2d.%1d%%)%.*s\n",
-            //                 rate_stats->table[i],
-            //                 div_u64_rem(percent, 10, &rem), rem, p, hist);
-            if (bprintk) {
-                printk(KERN_CONT ": %9d(%2d.%1d%%)\n", rate_stats->table[i], div_u64_rem(percent, 10, &rem), rem);
-            } else {
-                len += scnprintf(&buf[len], bufsz - len, ": %9d(%2d.%1d%%)\n",
-                                 rate_stats->table[i],
-                                 div_u64_rem(percent, 10, &rem), rem);
-            }
+            len += scnprintf(&buf[len], bufsz - len, ": %9d(%2d.%1d%%)%.*s\n",
+                             rate_stats->table[i],
+                             div_u64_rem(percent, 10, &rem), rem, p, hist);
         }
     }
 
     // Display detailed info of the last received rate
     last_rx = &sta->stats.last_rx.rx_vect1;
-    if (bprintk) {
-        printk("\nLast received rate\n"
-               "type               rate     LDPC STBC BEAMFM DCM DOPPLER\n");
-    } else {
-        len += scnprintf(&buf[len], bufsz - len,"\nLast received rate\n"
-                         "type               rate     LDPC STBC BEAMFM DCM DOPPLER %s\n",
-                         (nrx > 1) ? "rssi1(dBm) rssi2(dBm)" : "rssi(dBm)");
-    }
+    len += scnprintf(&buf[len], bufsz - len,"\nLast received rate\n"
+                     "type               rate     LDPC STBC BEAMFM DCM DOPPLER %s\n",
+                     (nrx > 1) ? "rssi1(dBm) rssi2(dBm)" : "rssi(dBm)");
 
     fmt = last_rx->format_mod;
     bw = last_rx->ch_bw;
@@ -846,53 +827,27 @@ int aml_print_last_rx_info(struct aml_hw *priv, struct aml_sta *sta)
         gi = 0;
     }
 
-    len += print_rate(&buf[len], bufsz - len, fmt, nss, mcs, bw, gi, pre, dcm, NULL, bprintk);
+    len += print_rate(&buf[len], bufsz - len, fmt, nss, mcs, bw, gi, pre, dcm, NULL);
 
     /* flags for HT/VHT/HE */
     if (fmt >= FORMATMOD_HE_SU) {
-        if (bprintk) {
-            printk(KERN_CONT "  %c    %c     %c    %c     %c",
-                     last_rx->he.fec ? 'L' : ' ',
-                     last_rx->he.stbc ? 'S' : ' ',
-                     last_rx->he.beamformed ? 'B' : ' ',
-                     last_rx->he.dcm ? 'D' : ' ',
-                     last_rx->he.doppler ? 'D' : ' ');
-        } else {
-            len += scnprintf(&buf[len], bufsz - len, "  %c    %c     %c    %c     %c",
-                             last_rx->he.fec ? 'L' : ' ',
-                             last_rx->he.stbc ? 'S' : ' ',
-                             last_rx->he.beamformed ? 'B' : ' ',
-                             last_rx->he.dcm ? 'D' : ' ',
-                             last_rx->he.doppler ? 'D' : ' ');
-        }
+        len += scnprintf(&buf[len], bufsz - len, "  %c    %c     %c    %c     %c",
+                         last_rx->he.fec ? 'L' : ' ',
+                         last_rx->he.stbc ? 'S' : ' ',
+                         last_rx->he.beamformed ? 'B' : ' ',
+                         last_rx->he.dcm ? 'D' : ' ',
+                         last_rx->he.doppler ? 'D' : ' ');
     } else if (fmt == FORMATMOD_VHT) {
-        if (bprintk) {
-            printk(KERN_CONT "  %c    %c     %c           ",
-                     last_rx->vht.fec ? 'L' : ' ',
-                     last_rx->vht.stbc ? 'S' : ' ',
-                     last_rx->vht.beamformed ? 'B' : ' ');
-        } else {
-            len += scnprintf(&buf[len], bufsz - len, "  %c    %c     %c           ",
-                             last_rx->vht.fec ? 'L' : ' ',
-                             last_rx->vht.stbc ? 'S' : ' ',
-                             last_rx->vht.beamformed ? 'B' : ' ');
-        }
+        len += scnprintf(&buf[len], bufsz - len, "  %c    %c     %c           ",
+                         last_rx->vht.fec ? 'L' : ' ',
+                         last_rx->vht.stbc ? 'S' : ' ',
+                         last_rx->vht.beamformed ? 'B' : ' ');
     } else if (fmt >= FORMATMOD_HT_MF) {
-        if (bprintk) {
-            printk(KERN_CONT "  %c    %c                  ",
-                     last_rx->ht.fec ? 'L' : ' ',
-                     last_rx->ht.stbc ? 'S' : ' ');
-        } else {
-            len += scnprintf(&buf[len], bufsz - len, "  %c    %c                  ",
-                             last_rx->ht.fec ? 'L' : ' ',
-                             last_rx->ht.stbc ? 'S' : ' ');
-        }
+        len += scnprintf(&buf[len], bufsz - len, "  %c    %c                  ",
+                         last_rx->ht.fec ? 'L' : ' ',
+                         last_rx->ht.stbc ? 'S' : ' ');
     } else {
-        if (bprintk) {
-            printk(KERN_CONT "                         ");
-        } else {
-            len += scnprintf(&buf[len], bufsz - len, "                         ");
-        }
+        len += scnprintf(&buf[len], bufsz - len, "                         ");
     }
 
     #if 0
@@ -905,10 +860,9 @@ int aml_print_last_rx_info(struct aml_hw *priv, struct aml_sta *sta)
         len += scnprintf(&buf[len], bufsz - len, "      %d\n", last_rx->rssi1);
     }
     #endif
-    if (!bprintk) {
-        aml_print_buf(buf, len);
-        kfree(buf);
-    }
+
+    aml_print_buf(buf, len);
+    kfree(buf);
 #endif
     return 0;
 }
@@ -1056,7 +1010,7 @@ int aml_print_rate_info( struct aml_hw *aml_hw, struct aml_sta *sta)
         unsigned int tp, eprob;
         len = print_rate_from_cfg(st[i].line, LINE_MAX_SZ,
                                   me_rc_stats_cfm.rate_stats[i].rate_config,
-                                  (int *)&st[i].r_idx, 0, 0);
+                                  (int *)&st[i].r_idx, 0);
 
         if (me_rc_stats_cfm.sw_retry_step != 0) {
             len += scnprintf(&st[i].line[len], LINE_MAX_SZ - len,  "%c",
@@ -1111,7 +1065,7 @@ int aml_print_rate_info( struct aml_hw *aml_hw, struct aml_sta *sta)
         len += scnprintf(&buf[len], bufsz - len,
                 "     type               rate             tpt   eprob    ok(   tot)   ul_length\n     ");
         len += print_rate_from_cfg(&buf[len], bufsz - len, rate_stats->rate_config,
-                                   NULL, ru_index, 0);
+                                   NULL, ru_index);
 
         tp = me_rc_stats_cfm.tp[RC_HE_STATS_IDX] / 10;
         len += scnprintf(&buf[len], bufsz - len, "      %4u.%1u",
@@ -1137,10 +1091,10 @@ int aml_print_rate_info( struct aml_hw *aml_hw, struct aml_sta *sta)
 
     len += scnprintf(&buf[len], bufsz - len, "\n rate upper: ");
     len += print_rate_from_cfg(&buf[len], bufsz - len, me_rc_stats_cfm.upper_rate_cfg,
-                               NULL, 0, 0);
+                               NULL, 0);
     len += scnprintf(&buf[len], bufsz - len, "\n rate lower: ");
     len += print_rate_from_cfg(&buf[len], bufsz - len, me_rc_stats_cfm.lower_rate_cfg,
-                               NULL, 0, 0);
+                               NULL, 0);
     aml_print_buf(buf, len);
     printk("\n");
     kfree(buf);
@@ -1270,38 +1224,25 @@ static int aml_get_chan_list_info(struct net_device *dev)
     return 0;
 }
 
-static void aml_get_rx_regvalue(struct aml_plat *aml_plat, union iwreq_data *wrqu, char *extra)
+static void aml_get_rx_regvalue(struct aml_plat *aml_plat)
 {
-    u32 rssi_indivaul = 0;
-    u32 ba_rssi = 0;
-    u32 link_rssi = 0;
-
-    rssi_indivaul = AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_TWO_RSSI);
-    ba_rssi       = AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_RSSI);
-    link_rssi     = (AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_RSSI) & 0xffff) - 256;
+    printk("------------ rx buf status ---\n");
     printk("rx_end     :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc06088));
     printk("frame_ok   :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc06080));
     printk("frame_bad  :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc06084));
     printk("rx_error   :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc0608c));
     printk("phy_error  :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc06098));
 
+    printk("rxbuffer1--->:\n");
     printk("start      :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xb081c8));
     printk("end        :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xb081cc));
     printk("read       :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xb081d0));
     printk("write      :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xb081d4));
     printk("SNR        :0x%x\n", AML_REG_READ(aml_plat, AML_ADDR_SYSTEM, 0xc0005c)&0xfff);
-
-    //printk("data_avg_rssi: %d dBm\n", ((AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_RSSI) & 0xffff0000) >> 16) - 256);
-    wrqu->data.length = scnprintf(extra, IW_PRIV_SIZE_MASK, "\nLast RX Data RSSI  = %d %d \n"
-        "TX Response RSSI   = %d %d \n"
-        "Beacon RSSI        = %d \n",
-        ((rssi_indivaul & 0xff000000) >> 24) - 256, ((rssi_indivaul & 0x00ff0000) >> 16)- 256,
-        ((ba_rssi & 0xff000000) >> 24) - 256, ((ba_rssi & 0x00ff0000) >> 16)- 256,
-        link_rssi);
-    wrqu->data.length++;
-    //printk("Last RX Data RSSI  = %d %d \n", ((rssi_indivaul & 0xff000000) >> 24) - 256, ((rssi_indivaul & 0x00ff0000) >> 16)- 256);
-    //printk("TX Response RSSI   = %d %d \n", ((ba_rssi & 0xff000000) >> 24) - 256, ((ba_rssi & 0x00ff0000) >> 16)- 256);
-    //printk("Beacon RSSI        = %d %d \n", ((rssi_indivaul & 0x0000ff00) >> 8) - 256, (rssi_indivaul & 0x000000ff) - 256);
+    printk("------------ rx buf status ---\n");
+    printk("\n");
+    printk("------------ rssi ------------\n");
+    printk("data_avg_rssi: %d dBm\n", ((AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_RSSI) & 0xffff0000) >> 16) - 256);
 }
 
 static void aml_get_bcn_rssi(struct net_device *dev)
@@ -1315,10 +1256,10 @@ static void aml_get_bcn_rssi(struct net_device *dev)
     bcn_rssi = (AML_REG_READ(aml_plat, AML_ADDR_MAC_PHY, REG_OF_SYNC_RSSI) & 0xffff);
 
     printk("------------ rssi info ------------\n");
-    printk("bcn_rssi: %d dbm, (wf0: %d dbm, wf1: %d dbm) \n", bcn_rssi - 256, ((rssi_indivaul & 0x0000ff00) >> 8) - 256, (rssi_indivaul & 0x000000ff) - 256);
+    printk("bcn_rssi: %d dbm, (wf0: %d dbm, wf1: %d dbm) \n", bcn_rssi - 256, ((rssi_indivaul & 0x00ff0000) >> 16) - 256, ((rssi_indivaul & 0x0000ff00) >> 8) - 256);
 }
 
-static int aml_get_last_rx(struct net_device *dev, union iwreq_data *wrqu, char *extra)
+static int aml_get_last_rx(struct net_device *dev)
 {
     struct aml_vif *aml_vif = netdev_priv(dev);
     struct aml_hw *aml_hw = aml_vif->aml_hw;
@@ -1329,7 +1270,7 @@ static int aml_get_last_rx(struct net_device *dev, union iwreq_data *wrqu, char 
         sta = aml_hw->sta_table + i;
         if (sta && sta->valid && (aml_vif->vif_index == sta->vif_idx)) {
             aml_print_last_rx_info(aml_hw, sta);
-            aml_get_rx_regvalue(aml_plat, wrqu, extra);
+            aml_get_rx_regvalue(aml_plat);
         }
     }
     return 0;
@@ -1558,34 +1499,14 @@ static int aml_get_buf_state(struct net_device *dev)
 {
     struct aml_vif *aml_vif = netdev_priv(dev);
     struct aml_hw *aml_hw = aml_vif->aml_hw;
-
-    if (aml_bus_type == PCIE_MODE) {
-        printk("invalid cmd\n");
-        return -1;
-    }
-    printk("=============================\n");
-    if (aml_hw->la_enable) {
-        printk("la status:       ON\n");
-    } else {
-        printk("la status:       OFF\n");
-    }
-
-    if (aml_bus_type == USB_MODE) {
-        if (aml_hw->trace_enable) {
-            printk("trace status:    ON\n");
-        } else {
-            printk("trace status:    OFF\n");
-        }
-    }
-
     if (aml_hw->rx_buf_state & FW_BUFFER_EXPAND) {
-        printk("trx status:      rxbuf large, txbuf small\n");
+        printk("rxbuf: 256k, txbuf: 128k\n");
     } else if (aml_hw->rx_buf_state & FW_BUFFER_NARROW) {
-        printk("trx status:      rxbuf small, txbuf large\n");
+        printk("rxbuf: 128k, txbuf: 256k\n");
     } else {
         printk("err: rx_buf_state[%x]\n", aml_hw->rx_buf_state);
     }
-    printk("=============================\n");
+
     return 0;
 }
 
@@ -3680,39 +3601,34 @@ int aml_emb_la_capture(struct net_device *dev, int bus1, int bus2)
 
 }
 
-int aml_emb_la_enable(struct net_device *dev, int enable)
+int aml_emb_la_enable(struct net_device *dev)
 {
     struct aml_vif *aml_vif = netdev_priv(dev);
     struct aml_hw *aml_hw = aml_vif->aml_hw;
+    int enable  = 1;
 
-    if (aml_bus_type == PCIE_MODE) {
-        printk("invalid cmd\n");
-        return -1;
-    }
-
-    if (enable != 0 && enable != 1) {
-        AML_INFO("param error:%d\n",  enable);
-        return -1;
+    if (aml_hw->la_enable) {
+        AML_INFO("la had enable!");
+        return 0;
     }
 
     if (aml_bus_type == USB_MODE && aml_hw->trace_enable) {
-        AML_INFO("usb trace is enable, usb la is forbidden!");
+        AML_INFO("usb trace is enable, la is forbidden!");
         return -1;
     }
 
-    if (enable == aml_hw->la_enable) {
-        AML_INFO("The set la status is consistent with the current la status, Do nothing!");
-        return -1;
+    if (!(aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG)) {
+        aml_send_set_buf_state_req(aml_hw, BUFFER_RX_FORCE_REDUCE);
     }
 
-    if (aml_hw->rx_buf_state & BUFFER_STATUS) {
-        AML_INFO("During dynamic buf switch, please try again later");
-        return -1;
+    while (!(aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG)) {
+        usleep_range(2,3);
     }
 
-    _aml_set_la_enable(aml_hw, enable);
-    aml_hw->la_enable = enable;
-
+    if (aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG) {
+        _aml_set_la_enable(aml_hw,enable);
+        aml_hw->la_enable = 1;
+    }
     return 0;
 }
 
@@ -4169,44 +4085,42 @@ static int aml_pcie_lp_switch(struct net_device *dev, int status)
     return ret;
 }
 
-int aml_set_usb_trace_enable(struct net_device *dev, int enable)
+int aml_set_usb_trace_enable(struct net_device *dev)
 {
     struct aml_vif *aml_vif = netdev_priv(dev);
     struct aml_hw *aml_hw = aml_vif->aml_hw;
+    int trace_enable  = 1;
 
-    if (aml_bus_type != USB_MODE) {
-        printk("invalid cmd\n");
-        return -1;
+    if (aml_hw->trace_enable) {
+        AML_INFO("usb trace had enable!");
+        return 0;
     }
 
-    if (enable != 0 && enable != 1) {
-        AML_INFO("param error:%d\n",  enable);
-        return -1;
+    if (aml_bus_type == USB_MODE) {
+        if (aml_hw->la_enable) {
+            AML_INFO("usb la is enable, usb trace is forbidden!");
+            return -1;
+        }
+        if (!(aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG)) {
+            aml_send_set_buf_state_req(aml_hw, BUFFER_RX_FORCE_REDUCE);
+        }
+
+        while (!(aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG)) {
+            usleep_range(2,3);
+        }
+
+        if (aml_hw->rx_buf_state & BUFFER_TX_USED_FLAG) {
+            _aml_set_usb_trace_enable(aml_hw, trace_enable);
+            aml_hw->trace_enable = 1;
+        }
+    } else {
+        AML_INFO("not support cmd!");
     }
-
-    if (aml_hw->la_enable) {
-        AML_INFO("usb la is enable, usb trace is forbidden!");
-        return -1;
-    }
-
-    if (enable == aml_hw->trace_enable) {
-        AML_INFO("The set trace status is consistent with the current trace status, do nothing!");
-        return -1;
-    }
-
-    if (aml_hw->rx_buf_state & BUFFER_STATUS) {
-        AML_INFO("During dynamic buf switch, please try again later");
-        return -1;
-    }
-
-    _aml_set_usb_trace_enable(aml_hw, enable);
-    aml_hw->trace_enable = enable;
-
     return 0;
 }
-
+#ifdef CONFIG_AML_DEBUGS
 extern struct log_file_info trace_log_file_info;
-
+#endif
 int aml_set_fwlog_cmd(struct net_device *dev, int mode)
 {
     struct aml_vif *aml_vif = netdev_priv(dev);
@@ -4217,7 +4131,7 @@ int aml_set_fwlog_cmd(struct net_device *dev, int mode)
         AML_INFO("usb trace is disable!");
         return -1;
     }
-
+#ifdef CONFIG_AML_DEBUGS
     if (aml_bus_type != PCIE_MODE && trace_log_file_info.log_buf && trace_log_file_info.ptr) {
         if (mode == 0) {
             ret = aml_traceind(aml_vif->aml_hw->ipc_env->pthis, mode);
@@ -4226,13 +4140,12 @@ int aml_set_fwlog_cmd(struct net_device *dev, int mode)
         }
         aml_send_fwlog_cmd(aml_vif, mode);
         if (aml_bus_type == USB_MODE) {
-#ifdef CONFIG_AML_DEBUGFS
             aml_dbgfs_fw_trace_create(aml_vif->aml_hw);
-#endif
         }
     } else {
         AML_INFO("bus_type err or trace_log_file_info init failed!");
     }
+#endif
     return 0;
 }
 
@@ -4367,27 +4280,6 @@ void aml_set_wifi_mac_addr(struct net_device *dev, char* arg_iw)
     } else {
         printk("Wifi mac has been written\n");
     }
-}
-
-static int aml_set_tcp_tcp_ack_window_scaling(struct net_device *dev, int win_scal)
-{
-    struct aml_vif *aml_vif = netdev_priv(dev);
-    struct aml_hw * aml_hw = aml_vif->aml_hw;
-    struct aml_tcp_sess_mgr *ack_mgr = &aml_hw->ack_mgr;
-    if (win_scal >= 15 || win_scal < 0 ) {
-        printk("ERR:The parameter must be in range 0 -- 15\n");
-        return 0;
-    }
-    ack_mgr->window_scaling = win_scal;;
-    printk("set tcp ack:window_scaling=%x\n", ack_mgr->window_scaling);
-    return 0;
-}
-
-static int aml_set_mdns_offload_debug(struct net_device *dev, int debug)
-{
-    printk("set mdns offload debug:%d\n", debug);
-	g_mdns_offload_debug = debug;
-    return 0;
 }
 
 int aml_get_mac_addr(struct net_device *dev,union iwreq_data *wrqu, char *extra)
@@ -4849,21 +4741,9 @@ static int aml_iwpriv_send_para1(struct net_device *dev,
         case AML_IWP_SET_PUTV_TRACE_SWITCH:
             aml_set_putv_trace_switch_cmd(dev, set1);
             break;
-        case AML_IWP_LA_ENABLE:
-            aml_emb_la_enable(dev, set1);
-            break;
-        case AML_IWP_USB_TRACE_ENABLE:
-            aml_set_usb_trace_enable(dev, set1);
-            break;
         case AML_IWP_ENABLE_RSSI_REG:
             aml_enable_rssi_reg(dev, set1);
             break;
-        case AML_IWP_SET_TCP_ACK_WINDOW_SCALE:
-             aml_set_tcp_tcp_ack_window_scaling(dev, set1);
-             break;
-        case AML_IWP_SET_MDNS_OFFLOAD_DEBUG:
-             aml_set_mdns_offload_debug(dev, set1);
-             break;
         default:
             printk("%s %d: param err\n", __func__, __LINE__);
             break;
@@ -5028,6 +4908,9 @@ static int aml_iwpriv_get(struct net_device *dev,
         case AML_IWP_GET_TX_LFT:
             aml_get_tx_lft(dev);
             break;
+        case AML_IWP_GET_LAST_RX:
+            aml_get_last_rx(dev);
+            break;
         case AML_IWP_CLEAR_LAST_RX:
             aml_clear_last_rx(dev);
             break;
@@ -5072,6 +4955,12 @@ static int aml_iwpriv_get(struct net_device *dev,
         case AML_IWP_GET_TCP_DELAY_ACK_INFO:
             aml_get_tcp_ack_info(dev);
             break;
+        case AML_IWP_LA_ENABLE:
+            aml_emb_la_enable(dev);
+            break;
+        case AML_IWP_USB_TRACE_ENABLE:
+            aml_set_usb_trace_enable(dev);
+            break;
         case AML_IWP_STOP_DC_TONE:
             aml_stop_dc_tone(dev);
             break;
@@ -5087,9 +4976,6 @@ static int aml_iwpriv_get(struct net_device *dev,
 #endif
         case AML_IWP_GET_BCN_RSSI:
             aml_get_bcn_rssi(dev);
-            break;
-        case AML_COEX_GET_STATUS:
-            aml_coex_get_status(dev);
             break;
         default:
             printk("%s %d param err\n", __func__, __LINE__);
@@ -5169,9 +5055,6 @@ static int aml_iwpriv_get_char(struct net_device *dev,
             break;
         case AML_IWP_GET_EFUSE_VENDOR_SN:
             aml_get_efuse_vendor_sn(dev, wrqu, extra);
-            break;
-        case AML_IWP_GET_LAST_RX:
-            aml_get_last_rx(dev, wrqu, extra);
             break;
         default:
             break;
@@ -5269,11 +5152,11 @@ static const struct iw_priv_args aml_iwpriv_private_args[] = {
         AML_IWP_GET_TX_LFT,
         0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "get_tx_lft"},
     {
+        AML_IWP_GET_LAST_RX,
+        0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "get_last_rx"},
+    {
         AML_IWP_GET_BCN_RSSI,
         0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "get_bcn_rssi"},
-    {
-        AML_COEX_GET_STATUS,
-        0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "get_coex_status"},
     {
         AML_IWP_CLEAR_LAST_RX,
         0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "clear_last_rx"},
@@ -5313,6 +5196,12 @@ static const struct iw_priv_args aml_iwpriv_private_args[] = {
     {
         AML_IWP_GET_TCP_DELAY_ACK_INFO,
         0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "get_tcp_info"},
+    {
+        AML_IWP_LA_ENABLE,
+        0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "la_enable"},
+    {
+        AML_IWP_USB_TRACE_ENABLE,
+        0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "usb_trace_en"},
     {
         AML_IWP_STOP_DC_TONE,
         0, IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, "stop_dc_tone"},
@@ -5450,18 +5339,6 @@ static const struct iw_priv_args aml_iwpriv_private_args[] = {
         AML_IWP_ENABLE_RSSI_REG,
         IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "enable_two_ant_rssi"},
     {
-        AML_IWP_LA_ENABLE,
-        IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "la_enable"},
-    {
-        AML_IWP_USB_TRACE_ENABLE,
-        IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "usb_trace_en"},
-    {
-        AML_IWP_SET_TCP_ACK_WINDOW_SCALE,
-        IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "set_tcp_ack_ws"},
-    {
-        AML_IWP_SET_MDNS_OFFLOAD_DEBUG,
-        IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "set_mdns_debug"},
-    {
         SIOCIWFIRSTPRIV + 2,
         IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 2, 0, ""},
     {
@@ -5565,9 +5442,6 @@ static const struct iw_priv_args aml_iwpriv_private_args[] = {
     {
         AML_IWP_GET_ALL_EFUSE,
         IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, "get_all_efuse"},
-    {
-        AML_IWP_GET_LAST_RX,
-        IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, "get_last_rx"},
     {
         AML_IWP_GET_XOSC_EFUSE_TIMES,
         IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_MASK, "get_xosc_times"},

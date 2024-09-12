@@ -513,8 +513,9 @@ static const int aml_hwq2uapsd[NL80211_NUM_ACS] = {
 };
 
 extern void aml_print_version(void);
+#ifdef CONFIG_AML_DEBUGFS
 extern int aml_trace_buf_init(void);
-
+#endif
 extern void aml_trace_buf_deinit(void);
 extern struct aml_bus_state_detect bus_state_detect;
 extern struct usb_device *g_udev;
@@ -1552,10 +1553,6 @@ static struct wireless_dev *aml_interface_add(struct aml_hw *aml_hw,
         aml_rps_dev_flow_table_enable(ndev);
         aml_rps_sock_flow_sysctl_enable();
 #endif
-    } else if (aml_bus_type == SDIO_MODE) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-        aml_rps_cpus_disable(ndev);
-#endif
     }
 #endif
 
@@ -2136,6 +2133,13 @@ static int aml_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
             aml_recy_save_assoc_info(sme, aml_vif->vif_index);
 #endif
             aml_connect_flags_set(aml_vif, AML_CONNECTING);
+#ifndef CONFIG_LINUXPC_VERSION
+            if (aml_bus_type == SDIO_MODE || aml_bus_type == USB_MODE) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+                aml_rps_cpus_disable(dev);
+#endif
+            }
+#endif
             error = 0;
             break;
         case CO_BUSY:
@@ -2196,10 +2200,6 @@ static int aml_cfg80211_disconnect(struct wiphy *wiphy, struct net_device *dev,
 
     if (!aml_vif->sta.ap) {
         AML_INFO("error,sta.ap is null");
-    }
-
-    if ((aml_recy != NULL) && (aml_vif->vif_index == aml_recy->assoc_info.vif_idx)) {
-        aml_recy_flags_clr(AML_RECY_ASSOC_INFO_SAVED);
     }
 
     if (aml_vif->sta.ap && aml_vif->sta.ap->valid) {
@@ -4970,7 +4970,7 @@ static int aml_ps_wow_resume(struct aml_hw *aml_hw)
     struct aml_vif *aml_vif;
     int error = 0;
     struct aml_txq *txq;
-    int ret = 0;
+    int ret;
     unsigned int reg_value;
     int cnt = 0;
 
@@ -4987,16 +4987,11 @@ static int aml_ps_wow_resume(struct aml_hw *aml_hw)
         if (atomic_read(&g_wifi_pm.drv_suspend_cnt)) {
             atomic_set(&g_wifi_pm.drv_suspend_cnt, 0);
             USB_BEGIN_LOCK();
-            if (aml_hw->g_urb->status != -EINPROGRESS)
-            {
-                printk("%s need submit urb\n", __func__);
-                ret = usb_submit_urb(aml_hw->g_urb, GFP_ATOMIC);
-            }
+            ret = usb_submit_urb(aml_hw->g_urb, GFP_ATOMIC);
             USB_END_LOCK();
             if (ret < 0) {
                 ERROR_DEBUG_OUT("usb_submit_urb failed %d\n", ret);
             }
-            printk("%s aml_hw->g_urb->status %d\n", __func__,aml_hw->g_urb->status);
         }
     }
 
@@ -5242,7 +5237,6 @@ static int aml_ps_wow_suspend(struct aml_hw *aml_hw, struct cfg80211_wowlan *wow
         atomic_set(&g_wifi_pm.drv_suspend_cnt, 1);
         if (aml_hw->g_urb->status != 0) {
             usb_kill_urb(aml_hw->g_urb);
-            printk("%s kill urb status %d\n", __func__, aml_hw->g_urb->status);
         }
         USB_END_LOCK();
     } else if (aml_bus_type == PCIE_MODE) {
@@ -5976,7 +5970,9 @@ static void aml_reg_notifier(struct wiphy *wiphy,
     AML_INFO("initiator=%d, hint_type=%d, alpha=%s, region=%d\n",
             request->initiator, request->user_reg_hint_type,
             request->alpha2, request->dfs_region);
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+    aml_apply_regdom(aml_hw, wiphy, request->alpha2);
+#endif
     // For now trust all initiator
     aml_radar_set_domain(&aml_hw->radar, request->dfs_region);
     aml_send_me_chan_config_req(aml_hw);
@@ -6551,9 +6547,11 @@ int aml_cfg80211_init(struct aml_plat *aml_plat, void **platform_data)
     aml_sync_trace_init(aml_hw);
 #endif
 
+#ifdef CONFIG_AML_DEBUGFS
     if (ret = aml_trace_buf_init()) {
         AML_INFO("alloc trace buf failed(%d)!\n", ret);
     }
+#endif
 
 #ifdef CONFIG_AML_RECOVERY
     aml_recy_init(aml_hw);

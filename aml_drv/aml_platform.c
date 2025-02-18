@@ -56,6 +56,7 @@ extern struct pcie_mem_map_struct pcie_ep_addr_range[PCIE_TABLE_NUM];
 #endif
 
 struct pci_dev *g_pci_dev = NULL;
+extern struct aml_pm_type g_wifi_pm;
 
 int wifi_fw_download(char *firmware_filename);
 int start_wifi(void);
@@ -1416,8 +1417,8 @@ int aml_check_fw_compatibility(struct aml_hw *aml_hw)
     } else if (aml_bus_type == SDIO_MODE) {
         return aml_sdio_check_fw_compatibility(aml_hw);
     } else {
-        if (g_pci_shutdown) {
-            AML_INFO("pci shutdown");
+        if (atomic_read(&g_wifi_pm.bus_suspend_cnt) || g_pci_shutdown) {
+            AML_INFO("aml_check_fw_compatibility,bus_suspend_cnt = %x, g_pci_shutdown = %x \n", g_wifi_pm.bus_suspend_cnt, g_pci_shutdown);
             return -1;
         }
         else

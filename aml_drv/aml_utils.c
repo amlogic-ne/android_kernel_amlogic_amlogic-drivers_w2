@@ -32,6 +32,7 @@
 #ifdef CONFIG_AML_DEBUGFS
 extern struct log_file_info trace_log_file_info;
 #endif
+extern struct aml_pm_type g_wifi_pm;
 
 /**
  * aml_ipc_buf_pool_alloc() - Allocate and push to fw a pool of IPC buffer.
@@ -1601,8 +1602,8 @@ void aml_ipc_txdesc_push(struct aml_hw *aml_hw, struct aml_sw_txhdr *sw_txhdr,
     if (aml_bus_type != PCIE_MODE) {
         aml_sdio_ipc_txdesc_push(aml_hw, sw_txhdr, skb, hw_queue);
     } else {
-        if (g_pci_shutdown) {
-            AML_INFO("pci shutdown");
+        if (atomic_read(&g_wifi_pm.bus_suspend_cnt) || g_pci_shutdown) {
+            AML_INFO("aml_ipc_txdesc_push,bus_suspend_cnt = %x, g_pci_shutdown = %x \n", g_wifi_pm.bus_suspend_cnt, g_pci_shutdown);
         }
         else
             aml_pci_ipc_txdesc_push(aml_hw, sw_txhdr, skb, hw_queue);

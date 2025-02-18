@@ -15,6 +15,7 @@
 #include "usb_common.h"
 #include "aml_interface.h"
 #include "chip_intf_reg.h"
+#include "aml_utils.h"
 
 #define W2p_VENDOR_AMLOGIC_EFUSE 0x1F35
 #define W2p_PRODUCT_AMLOGIC_EFUSE 0x0602
@@ -61,6 +62,38 @@ struct pcie_mem_map_struct pcie_ep_addr_range[PCIE_TABLE_NUM] =
 /* Uncomment this for depmod to create module alias */
 /* We don't want this on development platform */
 //MODULE_DEVICE_TABLE(pci, aml_pci_ids);
+
+bool aml_pci_resume_complete(struct pci_dev *pdev)
+{
+    u8 *addr;
+    int err;
+    unsigned int wake_flag;
+    uint32_t loop = 500;
+
+    struct aml_v7 *aml_pci = (struct aml_v7 *)g_aml_plat_pci->priv;
+    addr = aml_pci->pci_bar4_vaddr + pcie_ep_addr_range[9].pcie_bar_table_offset + (RG_AON_A55 - pcie_ep_addr_range[9].pcie_bar_table_base_addr);
+    wake_flag = readl(addr);
+    AML_INFO("wake_flag = 0x%x\n", wake_flag);
+    do
+    {
+        err = pci_set_power_state(pdev, PCI_D0);
+        if (err) {
+            ERROR_DEBUG_OUT("pci_set_power_state error %d \n", err);
+            return false;
+        }
+        addr = aml_pci->pci_bar4_vaddr + pcie_ep_addr_range[9].pcie_bar_table_offset + (RG_AON_A55 - pcie_ep_addr_range[9].pcie_bar_table_base_addr);
+        wake_flag = readl(addr);
+        msleep(10);
+
+        if (loop == 0)
+        {
+            AML_INFO("aml_pci_resume uncomplete = 0x%x\n", wake_flag);
+            return true;
+        }
+    } while ((!((wake_flag != 0xffffffff) && (wake_flag & BIT(0)))) && (loop-- > 0));
+
+    return true;
+}
 
 static int aml_pci_probe(struct pci_dev *pci_dev,
                           const struct pci_device_id *pci_id)
@@ -120,6 +153,8 @@ static int aml_pci_suspend(struct pci_dev *pdev, pm_message_t state)
     pci_save_state(pdev);
     pci_enable_wake(pdev, PCI_D0, 1);
 
+    usleep_range(500000, 520000);
+
     ret = pci_set_power_state(pdev, PCI_D3hot);
     if (ret) {
         ERROR_DEBUG_OUT("pci_set_power_state error %d\n", ret);
@@ -134,8 +169,7 @@ static int aml_pci_suspend(struct pci_dev *pdev, pm_message_t state)
 static int aml_pci_resume(struct pci_dev *pdev)
 {
     int err;
-    unsigned int wake_flag;
-    printk("%s\n", __func__);
+    bool pci_resume_ok;
     pci_restore_state(pdev);
 
     pci_set_master(pdev);
@@ -144,17 +178,12 @@ static int aml_pci_resume(struct pci_dev *pdev)
         ERROR_DEBUG_OUT("pci_set_power_state error %d \n", err);
         goto out;
     }
-    wake_flag = aml_pci_read_for_bt(AML_ADDR_AON, RG_AON_A55);
-    printk("%s %d wake_flag = 0x%x\n", __func__, __LINE__, wake_flag);
-    while (!((wake_flag != 0xffffffff) && (wake_flag & BIT(0))))
+
+    pci_resume_ok = aml_pci_resume_complete(pdev);
+    if (!pci_resume_ok)
     {
-        err = pci_set_power_state(pdev, PCI_D0);
-        if (err) {
-            ERROR_DEBUG_OUT("pci_set_power_state error %d \n", err);
-            goto out;
-        }
-        wake_flag = aml_pci_read_for_bt(AML_ADDR_AON, RG_AON_A55);
-        udelay(10);
+        AML_INFO("pci_resume_ok = 0x%x\n", pci_resume_ok);
+        goto out;
     }
     g_pcie_suspend = 0;
     printk("%s ok exit\n", __func__);
@@ -313,9 +342,9 @@ static u8* aml_pci_get_address_for_bt(struct aml_plat_pci *aml_plat, int addr_na
 
 u32 aml_pci_readl(u8* addr)
 {
-    if (g_pci_shutdown)
+    if (atomic_read(&g_wifi_pm.bus_suspend_cnt) || g_pci_shutdown)
     {
-        printk("pci readl err\n");
+        AML_INFO("pci readl err,bus_suspend_cnt = %x, g_pci_shutdown = %x \n", g_wifi_pm.bus_suspend_cnt, g_pci_shutdown);
         return 0;
     }
     else
@@ -324,10 +353,11 @@ u32 aml_pci_readl(u8* addr)
 
 void aml_pci_writel(u32 data, u8* addr)
 {
-    if (!g_pci_shutdown)
-        writel(data, addr);
+    if (atomic_read(&g_wifi_pm.bus_suspend_cnt) || g_pci_shutdown) {
+        AML_INFO("pci writel err,bus_suspend_cnt = %x, g_pci_shutdown = %x \n", g_wifi_pm.bus_suspend_cnt, g_pci_shutdown);
+    }
     else
-        printk("pci_writel err\n");
+        writel(data, addr);
     return;
 }
 

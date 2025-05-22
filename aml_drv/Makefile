@@ -1,4 +1,4 @@
-AML_VERS_NUM=v1.9.10_2024-12.20-w2 driver:daba90760
+AML_VERS_NUM=v1.9.10_2024-12.20-w2 driver:daba90760+529191
 #KERNELDIR=/usr/lib/modules/5.8.0-63-generic/build
 PWD=$(shell pwd)
 ifeq ($(ARCH),)

@@ -1,4 +1,10 @@
-
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+* Copyright (C) 202X Original Author (retain original author information)
+* Copyright (C) 202X Amlogic, Inc. All rights reserved.
+*
+* Description:
+*/
 #define AML_MODULE  IWPRIV
 
 #include <linux/sort.h>
@@ -1768,7 +1774,7 @@ static int aml_dump_reg(struct net_device *dev, int addr, int size)
     } else {
         for (i = 0; i < size / 4; i++) {
             len += scnprintf(&la_buf[len], (REG_DUMP_SIZE - len), "addr 0x%x ----- value 0x%x\n",
-                (unsigned int)(unsigned long)(address + i * 4), AML_REG_READ(aml_plat, 0, (unsigned int)(unsigned long)(address + i*4)));
+                (unsigned int)(unsigned long)(address + i * 4), AML_REG_READ(aml_plat, 0, (u64)(address + i*4)));
 
             if ((REG_DUMP_SIZE - len) < 38) {
                 aml_send_log_to_user(la_buf, len, AML_MEM_DUMP_UPLOAD);
@@ -3653,7 +3659,7 @@ static int aml_recy_ctrl(struct net_device *dev, int recy_id)
             aml_recy->recy_counter.recy_reason_cmd_tx_timeout_cnt);
             break;
         default:
-            AML_INFO("unknow recovery operation");
+            AML_INFO("unknown recovery operation");
             break;
     }
     return 0;

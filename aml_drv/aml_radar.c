@@ -504,7 +504,7 @@ u32 pde_get_multiple(u32 val, u32 fraction, u32 tolerance)
  *             (With this pulse there is already a sequence with @min_count
  *              pulse, so if we can't create a sequence with more pulse don't
  *              create it)
- * @return: false if an error occured (memory allocation) true otherwise
+ * @return: false if an error occurred (memory allocation) true otherwise
  *
  * For each pulses queued check if we can create a sequence with
  * pri = (ts - pulse_queued.ts) which contains more than @min_count pulses.
@@ -683,7 +683,7 @@ struct pri_sequence * pde_short_check_detection(struct pri_detector *pde)
  *                  SHORT/WEATHER/INTERLEAVED radar waveform
  * @pde: pointer on pri_detector
  *
- * Initialize pri_detector window size to the maximun size of one burst
+ * Initialize pri_detector window size to the maximum size of one burst
  * for the radar specification associated.
  */
 static

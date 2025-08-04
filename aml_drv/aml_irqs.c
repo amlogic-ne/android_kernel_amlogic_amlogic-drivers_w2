@@ -306,7 +306,7 @@ int aml_irq_task(void *data)
 /**
  * aml_irq_hdlr - IRQ handler
  *
- * Handler registerd by the platform driver
+ * Handler registered by the platform driver
  */
 irqreturn_t aml_irq_pcie_hdlr(int irq, void *dev_id)
 {

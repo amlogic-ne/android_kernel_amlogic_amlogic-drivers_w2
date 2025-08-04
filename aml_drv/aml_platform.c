@@ -205,7 +205,7 @@ end:
 }
 
 /**
- * aml_plat_get_rf() - Retrun the RF used in the platform
+ * aml_plat_get_rf() - return the RF used in the platform
  *
  * @aml_plat: pointer to platform structure
  */
@@ -249,7 +249,7 @@ static u32 aml_plat_get_clkctrl_addr(struct aml_plat *aml_plat)
  *
  * @aml_plat: pointer to platform structure
  * @agg_reg: Address of the agccntl register (within AML_ADDR_SYSTEM)
- * @agcctl: Updated with value of the agccntl rgister before stop
+ * @agcctl: Updated with value of the agccntl register before stop
  * @memclk: Updated with value of the clock register before stop
  * @agc_ver: Version of the AGC load procedure
  * @clkctrladdr: Indicates which AGC clock register should be accessed
@@ -760,7 +760,7 @@ static unsigned int bbpll_start(struct aml_plat *aml_plat)
     //delay 20 us for lock detector
     udelay(20);
 
-    //3.enable PLL lock-detecor
+    //3.enable PLL lock-detector
     rg_dpll_a3.data = AML_REG_READ(aml_plat, AML_ADDR_AON, RG_DPLL_A3);
     rg_dpll_a3.b.rg_bbpll_lk_rst = 0;
     AML_REG_WRITE(rg_dpll_a3.data, aml_plat, AML_ADDR_AON, RG_DPLL_A3);
@@ -1706,7 +1706,7 @@ int aml_platform_register_usb_drv(void)
     void *drv_data = NULL;
 
     if ((!g_usb_after_probe) || wifi_drv_rmmod_ongoing) {
-         AML_INFO("***** please confirm wether the usb is probe or w2_comm.ko rmmod success last time\n");
+         AML_INFO("***** please confirm whether the usb is probe or w2_comm.ko rmmod success last time\n");
          return -ENODEV;
     }
 
@@ -1808,7 +1808,7 @@ int aml_platform_register_sdio_drv(void)
     struct sdio_func *func = aml_priv_to_func(SDIO_FUNC7);
 
     if ((!g_sdio_after_porbe) || wifi_drv_rmmod_ongoing) {
-         AML_INFO("***** please confirm wether the sdio is probe or w2_comm.ko rmmod success last time\n");
+         AML_INFO("***** please confirm whether the sdio is probe or w2_comm.ko rmmod success last time\n");
          return -ENODEV;
     }
 

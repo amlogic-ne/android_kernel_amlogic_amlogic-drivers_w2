@@ -2140,7 +2140,7 @@ void aml_ipc_stop(struct aml_hw *aml_hw)
  * This assumes LMAC is still (tx wise) and there's no TX race until LMAC is up
  * tx wise.
  * This also lets both IPC sides remain in sync before resetting the LMAC,
- * e.g with aml_send_reset.
+ * eg with aml_send_reset.
  */
 void aml_ipc_tx_drain(struct aml_hw *aml_hw)
 {

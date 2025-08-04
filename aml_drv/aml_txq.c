@@ -311,7 +311,7 @@ static void aml_txq_flush(struct aml_hw *aml_hw, struct aml_txq *txq)
     int pushed;
     int nb = 0;
 
-    while(!skb_queue_empty(&txq->sk_list)) {
+    while (!skb_queue_empty(&txq->sk_list)) {
         struct sk_buff *txq_skb = skb_peek(&txq->sk_list);
 
         if (txq_skb != NULL) {
@@ -356,7 +356,7 @@ static void aml_txq_deinit(struct aml_hw *aml_hw, struct aml_txq *txq)
  *
  * @aml_hw: main driver data
  * @aml_vif: Pointer on VIF
- * @status: Intial txq status
+ * @status: initial txq status
  *
  * Softmac : 1 VIF TXQ per HWQ
  *
@@ -432,7 +432,7 @@ void aml_txq_vif_deinit(struct aml_hw * aml_hw, struct aml_vif *aml_vif)
  *
  * @aml_hw: Main driver data
  * @aml_sta: STA for which tx queues need to be initialized
- * @status: Intial txq status
+ * @status: initial txq status
  *
  * This function initialize all the TXQ associated to a STA.
  * Softmac : 1 TXQ per TID
@@ -537,7 +537,7 @@ void aml_txq_offchan_init(struct aml_vif *aml_vif)
  *
  * @vif: Interface that manages the STA
  *
- * This function deintialize txq for one STA.
+ * This function deinitialize txq for one STA.
  * Any buffer stuck in a queue will be freed.
  */
 void aml_txq_offchan_deinit(struct aml_vif *aml_vif)
@@ -1453,9 +1453,9 @@ static bool aml_txq_mac80211_dequeue(struct aml_hw *aml_hw,
  * aml_txq_get_skb_to_push() - Get list of buffer to push for one txq
  *
  * @aml_hw: main driver data
- * @hwq: HWQ on wich buffers will be pushed
+ * @hwq: HWQ on which buffers will be pushed
  * @txq: TXQ to get buffers from
- * @user: user postion to use
+ * @user: user position to use
  * @sk_list_push: list to update
  *
  *

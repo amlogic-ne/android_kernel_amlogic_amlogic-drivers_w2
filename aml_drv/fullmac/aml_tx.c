@@ -279,7 +279,7 @@ void aml_ps_bh_traffic_req(struct aml_hw *aml_hw, struct aml_sta *sta,
                 sta->ps.sp_cnt[ps_id] += txq_len;
                 aml_txq_start(txq, AML_TXQ_STOP_STA_PS);
             } else {
-                /* Enough pkt in this txq to comlete the request
+                /* Enough pkt in this txq to complete the request
                    add this txq to hwq list and stop processing txq */
                 txq->push_limit = pkt_req;
                 sta->ps.sp_cnt[ps_id] += pkt_req;
@@ -309,7 +309,7 @@ static void aml_downgrade_ac(struct aml_sta *sta, struct sk_buff *skb)
     int8_t ac = aml_tid2hwq[skb->priority];
 
     if (WARN((ac > AML_HWQ_VO),
-             "Unexepcted ac %d for skb before downgrade", ac))
+             "Unexpected ac %d for skb before downgrade", ac))
         ac = AML_HWQ_VO;
 
     while (sta->acm & BIT(ac)) {
@@ -828,7 +828,7 @@ static void aml_amsdu_del_subframe_header(struct aml_amsdu_txhdr *amsdu_txhdr)
  * @skb Buffer to aggregate
  * @sw_txhdr Tx descriptor for the first A-MSDU subframe
  *
- * return 0 on sucess, -1 otherwise
+ * return 0 on success, -1 otherwise
  *
  * This functions Add A-MSDU header and LLC/SNAP header in the buffer
  * and update sw_txhdr of the first subframe to link this buffer.
@@ -990,7 +990,7 @@ static bool aml_amsdu_add_subframe(struct aml_hw *aml_hw, struct sk_buff *skb,
     AML_PROF_CNT(amsdu, 2);
     spin_lock_bh(&aml_hw->tx_lock);
     if (txq->amsdu) {
-        /* aggreagation already in progress, add this buffer if enough space
+        /* aggregation already in progress, add this buffer if enough space
            available, otherwise end the current amsdu */
         struct aml_sw_txhdr *sw_txhdr = txq->amsdu;
         eth = (struct ethhdr *)(skb->data);
@@ -1081,7 +1081,7 @@ static bool aml_amsdu_add_subframe(struct aml_hw *aml_hw, struct sk_buff *skb,
  * @aml_hw Driver main data
  * @sw_txhdr_main Software descriptor of the A-MSDU to dismantle.
  *
- * The a-mdsu is always fully dismantled (i.e don't try to reduce it's size to
+ * The a-mdsu is always fully dismantled (i.e don't try to reduce it is size to
  * fit the new limit).
  * The DMA mapping can be re-used as aml_amsdu_add_subframe_header ensure that
  * enough data in the skb bufer are 'DMA mapped'.
@@ -1222,6 +1222,7 @@ static void aml_amsdu_update_len(struct aml_hw *aml_hw, struct aml_txq *txq,
         if (txq->amsdu_len <= amsdu_len)
             continue;
 
+        aml_txq_stop(txq, AML_TXQ_STOP_DISMANTLE_AMSDU);
         if (txq->last_retry_skb)
             skb = txq->last_retry_skb->next;
         else
@@ -1243,6 +1244,7 @@ static void aml_amsdu_update_len(struct aml_hw *aml_hw, struct aml_txq *txq,
         if (aml_bus_type == USB_MODE)
             txq->amsdu_len = min(txq->amsdu_len, (u16)USB_AMSDU_BUF_LEN);
 #endif
+        aml_txq_start(txq, AML_TXQ_STOP_DISMANTLE_AMSDU);
     }
 }
 #endif /* CONFIG_AML_AMSDUS_TX */
@@ -1628,7 +1630,7 @@ void aml_pkt_orphan_partial(struct sk_buff *skb, int tsq)
  *	Must return NETDEV_TX_OK , NETDEV_TX_BUSY.
  *        (can also return NETDEV_TX_LOCKED if NETIF_F_LLTX)
  *
- *  - Initialize the desciptor for this pkt (stored in skb before data)
+ *  - Initialize the descriptor for this pkt (stored in skb before data)
  *  - Push the pkt in the corresponding Txq
  *  - If possible (i.e. credit available and not in PS) the pkt is pushed
  *    to fw
@@ -1674,7 +1676,7 @@ netdev_tx_t aml_start_xmit(struct sk_buff *skb, struct net_device *dev)
     }
 #endif
     // If buffer is shared (or may be used by another interface) need to make a
-    // copy as TX infomration is stored inside buffer's headroom
+    // copy as TX information is stored inside buffer's headroom
     if (skb_shared(skb) || (skb_headroom(skb) < tx_max_headroom) ||
         (skb_cloned(skb) && (dev->priv_flags & IFF_BRIDGE_PORT))) {
         struct sk_buff *newskb = skb_copy_expand(skb, tx_max_headroom, 0, GFP_ATOMIC);
@@ -1830,7 +1832,7 @@ free:
  * aml_start_mgmt_xmit - Transmit a management frame
  *
  * @vif: Vif that send the frame
- * @sta: Destination of the frame. May be NULL if the destiantion is unknown
+ * @sta: destination of the frame. May be NULL if the destination is unknown
  *       to the AP.
  * @params: Mgmt frame parameters
  * @offchan: Indicate whether the frame must be send via the offchan TXQ.
@@ -2258,7 +2260,7 @@ int aml_tx_cfm_task(void *data)
  *         (points to struct aml_hw is this case)
  * @arg: IPC buffer with the TX confirmation
  *
- * This function is called for each confimration of transmission by the fw.
+ * This function is called for each confirmation of transmission by the fw.
  * Called with tx_lock hold
  *
  */
@@ -2377,7 +2379,6 @@ int aml_txdatacfm(void *pthis, void *arg)
         else if (!sw_txhdr->aml_sta || !is_multicast_sta(sw_txhdr->aml_sta->sta_idx))
             aml_hw->stats->amsdus[0].failed++;
     }
-
     aml_amsdu_update_len(aml_hw, txq, cfm->amsdu_size);
 #endif
 

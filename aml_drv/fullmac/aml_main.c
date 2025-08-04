@@ -1011,7 +1011,7 @@ int g_cali_cfg_done = 0;
  ********************************************************************/
 /**
  * int (*ndo_open)(struct net_device *dev);
- *     This function is called when network device transistions to the up
+ *     This function is called when network device transitions to the up
  *     state.
  *
  * - Start FW if this is the first interface opened
@@ -1152,7 +1152,7 @@ static int aml_open(struct net_device *dev)
      * so, it's more suitable to move this to aml_cfg80211_init,
      * however, if we do like this, fw doesn't config cali param
      * cause software runtime sequence really.
-     * */
+     */
     aml_config_cali_param(aml_hw);
 
     if (aml_hw->scan_duration) {
@@ -1188,7 +1188,7 @@ void aml_sta_deinit(struct aml_hw *aml_hw, struct aml_sta *sta)
 
 /**
  * int (*ndo_stop)(struct net_device *dev);
- *     This function is called when network device transistions to the down
+ *     This function is called when network device transitions to the down
  *     state.
  *
  * - Remove interface at fw level
@@ -2365,7 +2365,7 @@ static int aml_cfg80211_connect(struct wiphy *wiphy, struct net_device *dev,
             error = -EIO;
             break;
     }
-    if(error != 0) {
+    if (error != 0) {
         aml_set_scan_hang(aml_vif, 0, __func__, __LINE__);
         if (aml_vif->sta.ft_assoc_ies) {
             kfree(aml_vif->sta.ft_assoc_ies);
@@ -2577,7 +2577,7 @@ static int aml_cfg80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 #endif
             /*FIXME:
              * need add the connected sta's assoc req ies info,
-             * */
+             */
             sta_info.assoc_req_ies = NULL;
             sta_info.assoc_req_ies_len = 0;
             cfg80211_new_sta(dev, mac, &sta_info, GFP_KERNEL);
@@ -3132,7 +3132,7 @@ static int aml_cfg80211_stop_ap(struct wiphy *wiphy, struct net_device *dev)
  *	If no interfaces are active or the device is down, the channel should
  *	be stored for when a monitor interface becomes active.
  *
- * Also called internaly with chandef set to NULL simply to retrieve the channel
+ * Also called internally with chandef set to NULL simply to retrieve the channel
  * configured at firmware level.
  */
 static int aml_cfg80211_set_monitor_channel(struct wiphy *wiphy,
@@ -5031,7 +5031,7 @@ int aml_pwrsave_wow_usr(struct aml_hw *aml_hw, struct aml_vif *aml_vif,
     * Configure the patterns that we received from the user.
     * And we save WOW_MAX_FILTERS patterns at most.
     */
-    for (i = 0; i < wow->n_patterns; i++){
+    for (i = 0; i < wow->n_patterns; i++) {
         if ((error = aml_send_wow_pattern(aml_hw, aml_vif, &wow->patterns[i], i)))
             return error;
     }
@@ -5696,7 +5696,7 @@ static int aml_cfg80211_suspend(struct wiphy *wiphy, struct cfg80211_wowlan *wow
 #endif
 
     error = aml_ps_wow_suspend(aml_hw, wow);
-    if (error){
+    if (error) {
         atomic_set(&g_wifi_pm.wifi_suspend_state, 1);
         AML_ERR(" fail exit  \n");
         return -EBUSY;
@@ -5781,7 +5781,7 @@ static int aml_cfg80211_resume(struct wiphy *wiphy)
     }
 
     error = aml_ps_wow_resume(aml_hw, false);
-    if (error){
+    if (error) {
         AML_INFO("%s,%d, resume is fail return 0\n", __func__, __LINE__);
         return 0;
     }
@@ -7058,7 +7058,7 @@ static int aml_panic_callback(struct notifier_block *nb, unsigned long event, vo
 {
     /* can support more operation for debug when panic happened,
      * just print version info.
-     * */
+     */
     AML_INFO("panic version info:\n");
     AML_INFO("driver version:%s\n", AML_VERS_REV);
     AML_INFO("fw info:%s\n", FIRMWARE_INFO);

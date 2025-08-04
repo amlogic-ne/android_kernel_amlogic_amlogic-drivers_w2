@@ -1,3 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+* Copyright (C) 202X Original Author (retain original author information)
+* Copyright (C) 202X Amlogic, Inc. All rights reserved.
+*
+* Description:
+*/
 #ifndef _AML_P2P_H_
 #define _AML_P2P_H_
 
@@ -39,9 +46,9 @@ enum p2p_attr_id
 
 /* P2P Public Action Frame Types */
 enum p2p_action_type {
-    P2P_ACTION_GO_NEG_REQ   = 0,    /* GO Negociation Request */
-    P2P_ACTION_GO_NEG_RSP,          /* GO Negociation Response */
-    P2P_ACTION_GO_NEG_CFM,          /* GO Negociation Confirmation */
+    P2P_ACTION_GO_NEG_REQ   = 0,    /* GO Negotiation Request */
+    P2P_ACTION_GO_NEG_RSP,          /* GO Negotiation Response */
+    P2P_ACTION_GO_NEG_CFM,          /* GO Negotiation Confirmation */
     P2P_ACTION_INVIT_REQ,           /* P2P Invitation Request */
     P2P_ACTION_INVIT_RSP,           /* P2P Invitation Response */
     P2P_ACTION_DEV_DISC_REQ,        /* Device Discoverability Request */

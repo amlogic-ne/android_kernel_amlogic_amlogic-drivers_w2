@@ -128,46 +128,51 @@ extern const struct nla_policy mdns_offload_attr_policy[];
     DEFINE_MDNS_OFFLOAD_ATTR_POLICY;\
     const struct MDNS_OFFLOAD_OPS mdns_offload_ops
 
-static inline char *__mdnsOffload_decode_qname(unsigned char *buf,
+static inline char *__mdnsOffload_decode_qname(const uint8_t *buf,
     uint32_t buf_len, int offset)
 {
     char *qname = NULL;
-    unsigned char *p = NULL, *c = NULL;
-    uint32_t n = 0, i = 0;
+    const uint8_t *p = NULL;
+    uint16_t location = 0;
+    uint32_t ptr_count = 0;
+    uint32_t label_len = 0;
+    uint32_t total_len = 0;
 
     if (!buf || buf_len < 1 || offset < 0 || offset > buf_len - 1)
         goto err;
     p = buf + offset;
     if (*p == 0)
         goto err;
-    qname = (char *)kmalloc(256, GFP_KERNEL);
+    qname = (char *)kmalloc(MDNS_QNAME_LENGTH_MAX, GFP_KERNEL);
     if (!qname) {
         AML_ERR("mdnsOffload: alloc failed!\n");
         return NULL;
     }
-    memset(qname, 0, 256);
-    c = (unsigned char *)qname;
+    memset(qname, 0, MDNS_QNAME_LENGTH_MAX);
     while (*p) {
-        if ((*p >> 6) == 0x03) {
-            n = (((*p << 8) | *(p + 1)) & 0x3fff);
-            if (n > (buf_len - 1))
+        if ((*p & 0xC0) == 0xC0) {
+            if (ptr_count++ > 10)
                 goto err;
-            p = buf + n;
+            location = ((*p << 8) | *(p + 1)) & 0x3fff;
+            if (location > (buf_len - 1))
+                goto err;
+            p = buf + location;
             continue;
         }
-        n = *p;
-        if (p + n > buf + buf_len - 1)
+        label_len = *p++;
+        if (label_len > MDNS_NAME_LABEL_LEN_MAX
+          || total_len + label_len + 1 > MDNS_QNAME_LENGTH_MAX
+          || p + label_len > buf + buf_len)
             goto err;
-        p++;
-        for (i = 0; i < n; i++) {
-            if (*p > 32 && *p < 127)
-                *c++ = *p++;
-            else
-                goto err;
-        }
-        if (*p != 0)
-            *c++ = '.';
+        memcpy(qname + total_len, p, label_len);
+        p += label_len;
+        total_len += label_len;
+        qname[total_len++] = '.';
     }
+    if (total_len > 0)
+        qname[total_len-1] = '\0';
+    else
+        qname[0] = '\0';
     return qname;
 err:
     MDNS_OFFLOAD_DEBUG("mdnsOffload: decode qname failed!\n");
@@ -189,7 +194,7 @@ static inline void __mdnsOffload_dump_msg(unsigned char *buf,
         return;
     }
     for (i = 0; i < len; i++) {
-        memset(dump, 0, 256);
+        memset(dump, 0, MDNS_QNAME_LENGTH_MAX);
         n = 0;
         n += sprintf(dump + n, "%04x|", i);
         for (j = i; j < i + line; j++) {
@@ -379,13 +384,11 @@ static inline int __mdnsOffload_addProtocolResponses(struct wiphy *wiphy,
         MDNS_OFFLOAD_DEBUG("criteria list:\n");
         for (i = 0; i < criteriaListNum; i++) {
             qname = __mdnsOffload_decode_qname(pkt_data, pkt_len, criteriaList[i].nameOffset);
-            if (qname) {
-                MDNS_OFFLOAD_DEBUG("%d. type:%d\tnameOffset:%d\tname:%s\n", i + 1,
-                    criteriaList[i].type,
-                    criteriaList[i].nameOffset,
-                    (qname && strlen(qname) > 0) ? qname : "none");
-                kfree(qname);
-            }
+            MDNS_OFFLOAD_DEBUG("%d. type:%d\tnameOffset:%d\tname:%s\n", i + 1,
+                criteriaList[i].type,
+                criteriaList[i].nameOffset,
+                (qname && strlen(qname) > 0) ? qname : "none");
+            kfree(qname);
         }
         MDNS_OFFLOAD_DEBUG("rawOffloadPacket:\n");
         __mdnsOffload_dump_msg(pkt_data, pkt_len);

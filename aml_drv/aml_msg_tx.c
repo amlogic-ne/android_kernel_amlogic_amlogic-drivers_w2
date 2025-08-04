@@ -133,7 +133,7 @@ static bool aml_msg_send_mtheod(int id)
 
 #ifdef CONFIG_AML_FULLMAC
 /**
- * copy_connect_ies -- Copy Association Elements in the the request buffer
+ * copy_connect_ies -- Copy Association Elements in the request buffer
  * send to the firmware
  *
  * @vif: Vif that received the connection request
@@ -145,7 +145,7 @@ static bool aml_msg_send_mtheod(int id)
  * air. if FT is possible, send the FT elements (as received in update_ft_ies callback)
  * to the firmware
  *
- * In all other cases simply copy the list povided by the user space in the
+ * In all other cases simply copy the list provided by the user space in the
  * request buffer
  */
 static void copy_connect_ies(struct aml_vif *vif, struct sm_connect_req *req,
@@ -202,7 +202,7 @@ static void copy_connect_ies(struct aml_vif *vif, struct sm_connect_req *req,
  * FT over the air is possible if:
  * - auth_type = AUTOMATIC (if already set to FT then it means FT over DS)
  * - already associated to a FT BSS
- * - Target Mobility domain is the same as the curent one
+ * - Target Mobility domain is the same as the current one
  *
  * If FT is not possible return ie length of the connection info
  */
@@ -2828,7 +2828,7 @@ int aml_send_mesh_start_req(struct aml_hw *aml_hw, struct aml_vif *vif,
     for (i = 0; i < band->n_bitrates; i++) {
         u16 rate = band->bitrates[i].bitrate;
 
-        /* Read value is in in units of 100 Kbps, provided value is in units
+        /* Read value is in units of 100 Kbps, provided value is in units
          * of 1Mbps, and multiplied by 2 so that 5.5 becomes 11 */
         rate = (rate << 1) / 10;
 
@@ -4466,7 +4466,7 @@ int aml_pcie_prssr_test(struct net_device *dev, int start_addr, int len, u32_l p
     len = len >> 1;
 
     AML_INFO(" dir: %d, length: %d \n", dir, len);
-    if(dir == 1)
+    if (dir == 1)
     {
         aml_pcie_dl_malloc_test(aml_hw, start_addr, len, payload);
     }

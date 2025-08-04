@@ -127,7 +127,7 @@
 
 /**
  * Each data TXQ is a netdev queue. TXQ to send MGT are not data TXQ as
- * they did not recieved buffer from netdev interface.
+ * they did not received buffer from netdev interface.
  * Need to allocate the maximum case.
  * AP : all STAs + 1 BC/MC
  */
@@ -226,9 +226,10 @@ enum aml_txq_flags {
     AML_TXQ_NDEV_FLOW_CTRL = BIT(7),
     AML_TXQ_STOP_COEX_INACTIVE = BIT(8),
     AML_TXQ_STOP_SUSPEND   = BIT(9),
+    AML_TXQ_STOP_DISMANTLE_AMSDU = BIT(10),
     AML_TXQ_STOP         = (AML_TXQ_STOP_FULL | AML_TXQ_STOP_CSA |
                              AML_TXQ_STOP_STA_PS | AML_TXQ_STOP_VIF_PS |
-                             AML_TXQ_STOP_CHAN | AML_TXQ_STOP_COEX_INACTIVE | AML_TXQ_STOP_SUSPEND),
+                             AML_TXQ_STOP_CHAN | AML_TXQ_STOP_COEX_INACTIVE | AML_TXQ_STOP_SUSPEND | AML_TXQ_STOP_DISMANTLE_AMSDU),
 };
 
 

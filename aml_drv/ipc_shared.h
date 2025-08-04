@@ -509,7 +509,7 @@ struct rxdesc_tag
  * c<=d  [label="ipc_host_rxdesc_pop()"];
  * d=>d  [label="Rx packet is handed \nover to the OS "];
  * ...   [label="(several Rx desc can be poped)"];
- * ---   [label="Rx buffer request exemple"];
+ * ---   [label="Rx buffer request example"];
  * b:>c  [label="Low Rx buffer count IRQ"];
  * a<<b  [label="struct ipc_rxbuf"];
  * c=>>d [label="Driver Rx buffer callback"];

@@ -202,7 +202,7 @@ void aml_ipc_buf_release(struct aml_hw *aml_hw, struct aml_ipc_buf *buf,
  * @aml_hw: Main driver structure
  * @buf: IPC buffer to release
  *
- * An A2E buffer is realeased when it has been read by the embbeded side. This is
+ * An A2E buffer is re-released when it has been read by the embbeded side. This is
  * used before giving back a buffer to upper layer, or before deleting a buffer
  * when aml_ipc_buf_dealloc() cannot be used.
  */

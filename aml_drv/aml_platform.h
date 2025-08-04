@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  *
- * @file aml_platorm.h
+ * @file aml_platform.h
  *
  * Copyright (C) Amlogic 2012-2021
  *
@@ -172,7 +172,7 @@ struct aml_hw;
  * @enable: Configure communication with the fw (i.e. configure the transfers
  *         enable and register interrupt)
  * @disable: Stop communication with the fw
- * @deinit: Free all ressources allocated for the embedded platform
+ * @deinit: Free all resources allocated for the embedded platform
  * @get_address: Return the virtual address to access the requested address on
  *              the platform.
  * @ack_irq: Acknowledge the irq at link level.

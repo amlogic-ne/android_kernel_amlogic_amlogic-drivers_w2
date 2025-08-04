@@ -61,9 +61,9 @@ ftrace_print_mgmt_info(struct trace_seq *p, u16 frame_control, u8 cat, u8 type, 
                 // 'cat' is the 1 first after OUI and 'type' the second byte
                 if (vendor == 0x09) {
                     switch (cat) {
-                        case (P2P_ACTION_GO_NEG_REQ): trace_seq_printf(p, ": GO Negociation Request"); break;
-                        case (P2P_ACTION_GO_NEG_RSP): trace_seq_printf(p, ": GO Negociation Response"); break;
-                        case (P2P_ACTION_GO_NEG_CFM): trace_seq_printf(p, ": GO Negociation Confirmation"); break;
+                        case (P2P_ACTION_GO_NEG_REQ): trace_seq_printf(p, ": GO Negotiation Request"); break;
+                        case (P2P_ACTION_GO_NEG_RSP): trace_seq_printf(p, ": GO Negotiation Response"); break;
+                        case (P2P_ACTION_GO_NEG_CFM): trace_seq_printf(p, ": GO Negotiation Confirmation"); break;
                         case (P2P_ACTION_INVIT_REQ): trace_seq_printf(p, ": P2P Invitation Request"); break;
                         case (P2P_ACTION_INVIT_RSP): trace_seq_printf(p, ": P2P Invitation Response"); break;
                         case (P2P_ACTION_DEV_DISC_REQ): trace_seq_printf(p, ": Device Discoverability Request"); break;

@@ -1454,7 +1454,7 @@ static ssize_t aml_dbgfs_twt_request_write(struct file *file,
             i = 0;
             found = false;
             // Check if parameter is valid
-            while(accepted_params[i])
+            while (accepted_params[i])
             {
                 if (strcmp(accepted_params[i], param) == 0)
                 {
@@ -1501,7 +1501,7 @@ static ssize_t aml_dbgfs_twt_request_write(struct file *file,
             goto out;
         }
         line = strchr(line, ',');
-        if(line == NULL)
+        if (line == NULL)
             break;
         line++;
     }

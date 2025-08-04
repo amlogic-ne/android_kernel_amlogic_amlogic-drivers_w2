@@ -275,7 +275,7 @@ static int aml_cfg_to_file(struct aml_hw *aml_hw, struct aml_cfg *cfg, struct fi
      *      efuse > local random
      * - use aml oui:
      *      efuse (no), local (yes)
-     * */
+     */
 
     do {
         int ret;
@@ -368,7 +368,7 @@ static int aml_cfg_from_file(struct aml_hw *aml_hw, struct aml_cfg *cfg, struct 
      * if wifi_conf.txt exist
      * - get mac from android(emmc) every time
      * - get mac from wifi_conf.txt (avoid efuse read fail)
-     * */
+     */
 #ifdef CONFIG_AML_PLATFORM_ANDROID
     ether_addr_copy(emmc_mac, wifi_get_mac());
     if (is_valid_ether_addr(emmc_mac))

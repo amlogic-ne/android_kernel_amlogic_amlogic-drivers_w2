@@ -83,6 +83,8 @@ enum
 #define MDNS_LIST_CRITERIA_MAX      8
 #define MDNS_DATA_MAX 3
 #define MDNS_QNAME_LENGTH_MAX       256
+/// The len of a label in mdns name
+#define MDNS_NAME_LABEL_LEN_MAX      63
 
 /// For MAC HW States copied from "hal_machw.h"
 enum
@@ -350,7 +352,7 @@ enum mm_msg_tag
     MM_RSSI_STATUS_IND,
     /// Indication that CSA is done
     MM_CSA_FINISH_IND,
-    /// Indication that CSA is in prorgess (resp. done) and traffic must be stopped (resp. restarted)
+    /// Indication that CSA is in progress(resp. done) and traffic must be stopped (resp. restarted)
     MM_CSA_TRAFFIC_IND,
     /// Request to update the group information of a station
     MM_MU_GROUP_UPDATE_REQ,
@@ -403,7 +405,7 @@ enum priv_e2a_tag {
     PRIV_APM_DIS_STA_IND,
     PRIV_EFUSE_GET_RESULT,
     PRIV_DHCP_OFFLOAD_IND,
-    PRIV_SDIO_USB_REORD_INFO_IND,
+    PRIV_SDIO_USB_RECORD_INFO_IND,
     PRIV_TRAFFIC_BUSY_IND,
     PRIV_SCC_CONFLICT_CFM,
     PRIV_FT_AUTH_RSP_TIMEOUT_IND,
@@ -1664,7 +1666,7 @@ struct scanu_sched_scan_start_req
     //to the specified band while deciding whether a better BSS is reported
     //using @relative_rssi. If delta is a negative number, the BSSs that
     //belong to the specified band will be penalized by delta dB in relative
-    //comparisions.
+    //comparisons.
     struct scanu_bss_select_adjust rssi_adjust;
 };
 
@@ -1909,7 +1911,7 @@ struct me_sta_add_req
     u8_l opmode;
     /// Index of the VIF the station is attached to
     u8_l vif_idx;
-    /// Whether the the station is TDLS station
+    /// Whether the station is TDLS station
     bool_l tdls_sta;
     /// Indicate if the station is TDLS link initiator station
     bool_l tdls_sta_initiator;
@@ -1933,7 +1935,7 @@ struct me_sta_del_req
 {
     /// Index of the station to be deleted
     u8_l sta_idx;
-    /// Whether the the station is TDLS station
+    /// Whether the station is TDLS station
     bool_l tdls_sta;
 };
 
@@ -3035,7 +3037,7 @@ struct ftm_done_ind
 
 struct mm_other_cmd {
     u32_l     mm_sub_index;
-    char      param[];        // lenght is dynamic
+    char      param[];        // length is dynamic
 };
 
 struct rf_write_req

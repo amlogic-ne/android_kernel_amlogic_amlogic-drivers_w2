@@ -315,13 +315,20 @@ static inline int aml_rx_remain_on_channel_exp_ind(struct aml_hw *aml_hw,
                                                     struct ipc_e2a_msg *msg)
 {
     struct aml_vif *aml_vif;
+    u8 vif_index = ((struct mm_remain_on_channel_exp_ind *)msg->param)->vif_index;
+
+    aml_vif = aml_hw->vif_table[vif_index];
+    aml_txq_offchan_deinit(aml_vif);
 
     spin_lock_bh(&aml_hw->roc_lock);
     if (!aml_hw->roc) {
         spin_unlock_bh(&aml_hw->roc_lock);
         return 0;
     }
-    aml_vif= aml_hw->roc->vif;
+    if ((aml_hw->roc->vif) && (aml_hw->roc->vif != aml_vif)) {
+        AML_INFO("err roc vif index not %d\n",vif_index);
+        aml_vif = aml_hw->roc->vif;
+    }
 
     aml_tx_cfm_wait_rsp(aml_hw, false, (u8 *)__func__, __LINE__);
     trace_roc_exp(aml_vif->vif_index);
@@ -336,8 +343,6 @@ static inline int aml_rx_remain_on_channel_exp_ind(struct aml_hw *aml_hw,
     kfree(aml_hw->roc);
     aml_hw->roc = NULL;
     spin_unlock_bh(&aml_hw->roc_lock);
-
-    aml_txq_offchan_deinit(aml_vif);
 
     return 0;
 }
@@ -1521,7 +1526,7 @@ static inline int aml_rx_mesh_peer_update_ind(struct aml_hw *aml_hw,
                 aml_dbgfs_register_sta(aml_hw, aml_sta);
 
 #ifdef CONFIG_AML_BFMER
-                // TODO: update indication to contains vht capabilties
+                // TODO: update indication to contains vht capabilities
                 if (aml_hw->mod_params->bfmer)
                     aml_send_bfmer_enable(aml_hw, aml_sta, NULL);
 
@@ -1974,7 +1979,7 @@ static int aml_dhcp_offload_ind(struct aml_hw *aml_hw,
 }
 
 #ifdef CONFIG_AML_SDIO_USB_FW_REORDER
-static inline int aml_sdio_usb_rx_reord_flush_ind(struct aml_hw *aml_hw, struct aml_cmd *cmd, struct ipc_e2a_msg *msg)
+static inline int aml_sdio_usb_rx_record_flush_ind(struct aml_hw *aml_hw, struct aml_cmd *cmd, struct ipc_e2a_msg *msg)
 {
     return aml_sdio_usb_fw_reo_inst_save(&aml_hw->rx, (struct fw_reo_inst *)msg->param);
 }
@@ -2161,7 +2166,7 @@ static msg_cb_fct priv_hdlrs[MSG_I(PRIV_SUB_E2A_MAX)] = {
     [MSG_I(PRIV_SET_SUSPEND_IND)]   = aml_suspend_ind,
     [MSG_I(PRIV_APM_DIS_STA_IND)]   = aml_apm_handle_disconnect_sta,
 #ifdef CONFIG_AML_SDIO_USB_FW_REORDER
-    [MSG_I(PRIV_SDIO_USB_REORD_INFO_IND)] = aml_sdio_usb_rx_reord_flush_ind,
+    [MSG_I(PRIV_SDIO_USB_RECORD_INFO_IND)] = aml_sdio_usb_rx_record_flush_ind,
 #endif
     [MSG_I(PRIV_FT_AUTH_RSP_TIMEOUT_IND)] = aml_rx_sm_ft_auth_rsp_timeout_ind,
     [MSG_I(PRIV_TRAFFIC_BUSY_IND)]    = aml_traffic_busy_ind,

@@ -166,7 +166,7 @@ int aml_fw_trace_buf_init(struct aml_fw_trace_buf *shared_buf,
     shared_buf->end = &ipc->end;
     shared_buf->reset_idx = ++trace_last_reset;
 
-    /* backward compatibilty with firmware without trace activation */
+    /* backward compatibility with firmware without trace activation */
     if ((ipc->nb_compo >> 16) == AML_FW_TRACE_READY) {
         shared_buf->nb_compo = (ipc->nb_compo & 0xffff) + 6;
         shared_buf->compo_table = (uint32_t *)((uint8_t *)(&ipc->offset_compo)
@@ -284,7 +284,7 @@ static inline int aml_fw_trace_strlen(uint16_t *entry)
 /**
  * aml_fw_trace_to_str() - Convert one trace entry to a string
  *
- * @trace: Poitner to the trace entry
+ * @trace: pointer to the trace entry
  * @buf: Buffer for the string
  * @size: Size of the string buffer, updated with the actual string size
  *
@@ -486,7 +486,7 @@ static size_t aml_fw_trace_read_local(struct aml_fw_trace_local_buf *local_buf,
     }
 
     ptr = local_buf->read;
-    while(local_buf->nb_entries && !not_cpy) {
+    while (local_buf->nb_entries && !not_cpy) {
 
         if (local_buf->show_reset == ptr) {
             if (remain < AML_FW_TRACE_RESET_SIZE)
@@ -558,7 +558,7 @@ size_t aml_fw_trace_read(struct aml_fw_trace *trace,
 
     aml_fw_trace_copy(trace, local_buf);
 
-    while(!local_buf->nb_entries) {
+    while (!local_buf->nb_entries) {
         int last_index;
 
         if (dont_wait)
@@ -685,7 +685,7 @@ void _aml_fw_trace_dump(struct aml_fw_trace_buf *trace_buf)
  * _aml_fw_trace_reset() - Reset trace buffer at firmware level
  *
  * @trace: Pointer to shared trace buffer;
- * @bool: Indicate if mutex must be aquired before
+ * @bool: Indicate if mutex must be acquired before
  */
 int _aml_fw_trace_reset(struct aml_fw_trace *trace, bool lock)
 {
@@ -711,7 +711,7 @@ int _aml_fw_trace_reset(struct aml_fw_trace *trace, bool lock)
  * aml_fw_trace_get_trace_level() - Get trace level for a given component
  *
  * @trace: Pointer to shared trace buffer;
- * @compo_id: Index of the componetn in the table
+ * @compo_id: Index of the component in the table
  *
  * Return: The trace level set for the given component, 0 if component index
  * is invalid.
@@ -789,7 +789,7 @@ static uint32_t aml_fw_trace_get_trace_level(struct aml_fw_trace_buf *trace_buf,
  * aml_fw_trace_set_trace_level() - Set trace level for a given component
  *
  * @trace_buf: Pointer to shared trace buffer;
- * @compo_id: Index of the componetn in the table
+ * @compo_id: Index of the component in the table
  * @level: Trace level to set
  *
  * Set all components if compo_id is equals to the number of component and
@@ -935,7 +935,7 @@ int aml_fw_trace_config_filters(struct aml_fw_trace_buf *trace_buf,
 
     next = ftl;
     token = strsep(&next, " ");
-    while(token)
+    while (token)
     {
         unsigned int compo, ret, id, level = 0;
         char action;
@@ -943,14 +943,14 @@ int aml_fw_trace_config_filters(struct aml_fw_trace_buf *trace_buf,
         if ((sscanf(token, "%d%c0x%x", &compo, &action, &id) == 3)||
             (sscanf(token, "%d%c%d", &compo, &action, &id) == 3))
         {
-            if(action == '=')
+            if (action == '=')
             {
                 level = id;
             }
             else
             {
                 ret = aml_fw_trace_get_trace_level(trace_buf, compo);
-                if(action == '+')
+                if (action == '+')
                     level = (ret | id);
                 else if (action == '-')
                     level = (ret & ~id);
@@ -991,7 +991,7 @@ int aml_fw_trace_save_filters(struct aml_fw_trace *trace)
 }
 
 /**
- * aml_fw_trace_restore_filters() - Restore filters previoulsy saved
+ * aml_fw_trace_restore_filters() - Restore filters previously saved
  * by aml_fw_trace_save_filters()
  *
  * @trace: Fw trace control structure

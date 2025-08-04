@@ -1,4 +1,10 @@
-
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+* Copyright (C) 202X Original Author (retain original author information)
+* Copyright (C) 202X Amlogic, Inc. All rights reserved.
+*
+* Description:
+*/
 #define AML_MODULE  COMMON
 
 #include <linux/version.h>
@@ -7,11 +13,7 @@
 #include <linux/firmware.h>
 
 #ifdef CONFIG_AML_PLATFORM_ANDROID
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
-#include <linux/amlogic/aml_sd.h>   /* for sdio_reinit() */
-#else
-void sdio_reinit(void);
-#endif
+void sdio_reinit(void);             /* exported by meson-gx-mmx.c */
 #endif
 
 #include "chip_ana_reg.h"
@@ -477,7 +479,7 @@ void aml_sdio_shutdown(struct device *device)
     //notify bt wifi will go shutdown
     aml_sdio_random_word_write(RG_AON_A16, aml_sdio_random_word_read(RG_AON_A16) | BIT(28));
 
-    //prevrnt msg_send & reg read_write
+    //prevent msg_send & reg read_write
     atomic_set(&g_wifi_pm.is_shut_down, 1);
 }
 
@@ -559,7 +561,7 @@ try_again:
 
 #ifdef CONFIG_AML_PLATFORM_ANDROID
     msleep(100);
-    sdio_reinit();  /* exported by meson-gx-mmx.c */
+    sdio_reinit();
 #endif
 
     aml_sdio_init();

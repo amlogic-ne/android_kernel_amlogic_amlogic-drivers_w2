@@ -130,7 +130,7 @@ aml_prep_tdls_direct(struct aml_hw *aml_hw, struct aml_vif *aml_vif,
 }
 
 static int
-aml_add_srates_ie(struct aml_hw *aml_hw, struct sk_buff *skb)
+aml_add_states_ie(struct aml_hw *aml_hw, struct sk_buff *skb)
 {
     u8 i, rates, *pos;
     int rate;
@@ -154,7 +154,7 @@ aml_add_srates_ie(struct aml_hw *aml_hw, struct sk_buff *skb)
 }
 
 static int
-aml_add_ext_srates_ie(struct aml_hw *aml_hw, struct sk_buff *skb)
+aml_add_ext_states_ie(struct aml_hw *aml_hw, struct sk_buff *skb)
 {
     u8 i, exrates, *pos;
     int rate;
@@ -546,8 +546,8 @@ aml_tdls_add_setup_start_ies(struct aml_hw *aml_hw, struct aml_vif *aml_vif,
 
     rcu_read_lock();
 
-    aml_add_srates_ie(aml_hw, skb);
-    aml_add_ext_srates_ie(aml_hw, skb);
+    aml_add_states_ie(aml_hw, skb);
+    aml_add_ext_states_ie(aml_hw, skb);
     aml_tdls_add_supp_channels(aml_hw, skb);
     aml_tdls_add_ext_capab(aml_hw, skb);
 

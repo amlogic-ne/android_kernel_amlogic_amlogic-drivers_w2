@@ -470,7 +470,7 @@ static int aml_sdio_usb_rx_napi_poll(struct napi_struct *napi, int budget)
 
         AML_DBG("msdu(%4d): %32ph\n", skb->len, skb->data);
 
-        if (!sta || sta->sta_idx != rxcb->sta_idx) {
+        if (!aml_vif || !sta || sta->sta_idx != rxcb->sta_idx) {
             sta = aml_sta_get(aml_hw, rxcb->sta_idx);
             aml_vif = aml_rx_get_vif(aml_hw, sta ? sta->vlan_idx : rxcb->vif);
             if (!aml_vif) {

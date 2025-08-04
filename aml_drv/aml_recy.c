@@ -856,7 +856,7 @@ int aml_recy_init(struct aml_hw *aml_hw)
         return -ENOMEM;
     }
     aml_recy->aml_hw = aml_hw;
-    aml_recy->link_loss.is_enabled = 0;
+    aml_recy->link_loss.is_enabled = 1;
 
 #ifndef CONFIG_PT_MODE
     timer_setup(&aml_recy->timer, aml_recy_timer_cb, 0);

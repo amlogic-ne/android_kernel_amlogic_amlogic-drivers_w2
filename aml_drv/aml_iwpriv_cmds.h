@@ -1,3 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+* Copyright (C) 202X Original Author (retain original author information)
+* Copyright (C) 202X Amlogic, Inc. All rights reserved.
+*
+* Description:
+*/
 #ifndef __AML_IWPRIV_CMD_H
 #define __AML_IWPRIV_CMD_H
 #include <net/iw_handler.h>

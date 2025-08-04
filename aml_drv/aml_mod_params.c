@@ -642,14 +642,14 @@ static int aml_check_fw_hw_feature(struct aml_hw *aml_hw,
                PRINT_AML_FEAT(FAKE_FTM_RSP));
 #undef PRINT_AML_FEAT
 
-    if(max_sta_nb != NX_REMOTE_STA_MAX)
+    if (max_sta_nb != NX_REMOTE_STA_MAX)
     {
         wiphy_err(wiphy, "Different number of supported stations between driver and FW (%d != %d)\n",
                   NX_REMOTE_STA_MAX, max_sta_nb);
         res = -1;
     }
 
-    if(max_vif_nb != NX_VIRT_DEV_MAX)
+    if (max_vif_nb != NX_VIRT_DEV_MAX)
     {
         wiphy_err(wiphy, "Different number of supported virtual interfaces between driver and FW (%d != %d)\n",
                   NX_VIRT_DEV_MAX, max_vif_nb);
@@ -1047,9 +1047,9 @@ void aml_set_he_capa(struct aml_hw *aml_hw, struct wiphy *wiphy)
 #ifdef CONFIG_AML_WFA_CERT_MODE
     /* WFA CERT:
      * Disabled by default, should enable it when doing WFA test.
-     * Cause the WFA brcm98 STA will inspect these two fileds to determine
+     * Cause the WFA brcm98 STA will inspect these two fields to determine
      * whether carry HE capabilities IE in ASSOC request frame or not.
-     * */
+     */
     he_cap->he_cap_elem.mac_cap_info[0] |= IEEE80211_HE_MAC_CAP0_HTC_HE;
     he_cap->he_cap_elem.mac_cap_info[3] |= IEEE80211_HE_MAC_CAP3_OMI_CONTROL;
 #endif // CONFIG_AML_WFA_CERT_MODE

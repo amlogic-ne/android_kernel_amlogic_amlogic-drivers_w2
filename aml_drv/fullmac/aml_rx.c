@@ -439,7 +439,7 @@ static void aml_rx_mgmt(struct aml_hw *aml_hw, struct aml_vif *aml_vif,
  * @rxhdr: HW rx descriptor
  *
  * Process the management frame and free the corresponding skb.
- * If vif is not specified in the rx descriptor, the the frame is uploaded
+ * If vif is not specified in the rx descriptor, the frame is uploaded
  * on all active vifs.
  */
 void aml_rx_mgmt_any(struct aml_hw *aml_hw, struct sk_buff *skb, struct hw_rxhdr *hw_rxhdr)
@@ -1362,7 +1362,7 @@ int aml_pci_rxdataind(void *pthis, void *hostid)
 #ifdef DEBUG_CODE
     record_proc_rx_buf(status, ipc_desc->dma_addr, rxdesc->host_id, aml_hw);
 #endif
-    if (!status){
+    if (!status) {
         /* frame is not completely uploaded, give back ownership of the descriptor */
         aml_ipc_buf_e2a_sync_back(aml_hw, ipc_desc, sizeof(struct rxdesc_tag));
         return -1;

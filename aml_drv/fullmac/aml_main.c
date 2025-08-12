@@ -1718,22 +1718,6 @@ static struct wireless_dev *aml_interface_add(struct aml_hw *aml_hw,
 
     /* coverity[side_effect_free], spinlock_check(_lock); */
     spin_lock_init(&vif->vif_lock);
-#ifdef CONFIG_AML_PLATFORM_ANDROID
-    if (aml_bus_type == PCIE_MODE) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
-        aml_rps_cpus_enable(ndev);
-        //aml_xps_cpus_enable(ndev);
-        aml_rps_dev_flow_table_enable(ndev);
-        aml_rps_sock_flow_sysctl_enable();
-#endif
-    } else if (aml_bus_type == SDIO_MODE) {
-        /*
-         * by default, disable RPS to get the best throughput of TCP RX.
-         * for S905L3 (kernel 4.9), RPS will bind to the last CPU for TCP TX.
-         */
-        aml_rps_cpus_disable(ndev);
-    }
-#endif
 
     return &vif->wdev;
 

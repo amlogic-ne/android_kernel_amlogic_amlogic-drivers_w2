@@ -112,6 +112,10 @@ ddk_module(
         "aml_drv/aml_rps.c",
         "aml_drv/aml_sap.c",
         "aml_drv/aml_mdns_offload.c",
+        "aml_drv/aml_fw_trace.c",
+        "aml_drv/aml_rate.c",
+        "aml_drv/aml_sdio_usb_rx.c",
+        "aml_drv/aml_cfgvendor.c",
     ],
     conditional_srcs = {
         "CONFIG_AML_RADAR": {
@@ -121,7 +125,6 @@ ddk_module(
             True: [
                 "aml_drv/aml_debugfs.c",
                 "aml_drv/aml_fw_dump.c",
-                "aml_drv/aml_fw_trace.c",
             ],
         },
         "CONFIG_NL80211_TESTMODE": {

@@ -75,10 +75,13 @@ int aml_name_index(const char *names[], const char *name)
 }
 EXPORT_SYMBOL(aml_name_index);
 
+extern void set_usb_wifi_power(int is_power);
+
 void aml_wifi_power_on(int on)
 {
 #ifdef CONFIG_AML_PLATFORM_ANDROID
-    extern_wifi_set_enable(on);
+    AML_INFO("%s: set_usb_wifi_power(%d)\n", __func__, on);
+    set_usb_wifi_power(on);
 #endif
 }
 EXPORT_SYMBOL(aml_wifi_power_on);

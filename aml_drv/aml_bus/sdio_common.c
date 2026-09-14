@@ -519,6 +519,7 @@ void  aml_sdio_exit(void)
     sdio_unregister_driver(&aml_sdio_driver);
     g_sdio_driver_insmoded = 0;
     g_sdio_after_porbe = 0;
+    aml_wifi_power_on(0);
 
     AML_INFO("*****************aml sdio common driver is rmmoded********************\n");
 }
@@ -587,9 +588,13 @@ int aml_sdio_insmod(void)
 {
     int ret;
 
+    aml_wifi_power_on(1);
+
     ret = aml_sdio_init();
-    if (ret)
+    if (ret) {
+        aml_wifi_power_on(0);
         return ret;
+    }
 
 #ifdef CONFIG_PT_MODE
     if (!g_sdio_is_probe) {
